@@ -304,6 +304,27 @@ class SalesAnalystTest < Minitest::Test
     assert_equal ["Tuesday", "Thursday"], sa.top_days_by_invoice_count
   end
 
+  def test_revenue_by_merchant
+    mock_se = Minitest::Mock.new
+    mock_invoice_1 = Minitest::Mock.new
+    mock_invoice_2 = Minitest::Mock.new
+    mock_invoice_3 = Minitest::Mock.new
+    sa = SalesAnalyst.new(mock_se)
+    mock_invoices = [mock_invoice_1, mock_invoice_2, mock_invoice_3]
+    mock_se.expect(:find_invoices_by_merchant_id, mock_invoices, [3])
+    # mock_invoice_1.expect(:is_paid_in_full?, true)
+    # mock_invoice_2.expect(:is_paid_in_full?, false)
+    # mock_invoice_3.expect(:is_paid_in_full?, true)
+    mock_invoice_1.expect(:total, 12.5)
+    mock_invoice_2.expect(:total, 0)
+    mock_invoice_3.expect(:total, 13000)
+    assert_equal 13012.5, sa.revenue_by_merchant(3)
+    assert mock_se.verify
+    assert mock_invoice_1.verify
+    assert mock_invoice_2.verify
+    assert mock_invoice_3.verify
+  end
+
   def test_merchants_with_pending_invoices
     mock_se = Minitest::Mock.new
     mock_merchant_1 = Minitest::Mock.new

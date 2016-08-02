@@ -312,16 +312,69 @@ class SalesAnalystTest < Minitest::Test
     sa = SalesAnalyst.new(mock_se)
     mock_invoices = [mock_invoice_1, mock_invoice_2, mock_invoice_3]
     mock_se.expect(:find_invoices_by_merchant_id, mock_invoices, [3])
-    mock_invoice_1.expect(:is_paid_in_full?, true)
-    mock_invoice_2.expect(:is_paid_in_full?, false)
-    mock_invoice_3.expect(:is_paid_in_full?, true)
+    # mock_invoice_1.expect(:is_paid_in_full?, true)
+    # mock_invoice_2.expect(:is_paid_in_full?, false)
+    # mock_invoice_3.expect(:is_paid_in_full?, true)
     mock_invoice_1.expect(:total, 12.5)
+    mock_invoice_2.expect(:total, 0)
     mock_invoice_3.expect(:total, 13000)
     assert_equal 13012.5, sa.revenue_by_merchant(3)
     assert mock_se.verify
     assert mock_invoice_1.verify
     assert mock_invoice_2.verify
     assert mock_invoice_3.verify
+  end
+
+  def test_merchants_with_pending_invoices
+    mock_se = Minitest::Mock.new
+    mock_merchant_1 = Minitest::Mock.new
+    mock_merchant_2 = Minitest::Mock.new
+    mock_merchant_3 = Minitest::Mock.new
+    mock_merchant_4 = Minitest::Mock.new
+    mock_successful_invoice = Minitest::Mock.new
+    mock_pending_invoice    = Minitest::Mock.new
+    mock_failed_invoice     = Minitest::Mock.new
+    sa = SalesAnalyst.new(mock_se)
+
+    mock_merchants = [mock_merchant_1, mock_merchant_2, mock_merchant_3, mock_merchant_4]
+    mock_se.expect(:all_merchants, mock_merchants)
+    2.times do
+      mock_successful_invoice.expect(:is_paid_in_full?, true)
+    end
+    mock_pending_invoice.expect(:is_paid_in_full?, false)
+    mock_failed_invoice.expect(:is_paid_in_full?, false)
+    mock_merchant_1.expect(:invoices, [mock_pending_invoice])
+    mock_merchant_2.expect(:invoices, [mock_successful_invoice, mock_successful_invoice])
+    mock_merchant_3.expect(:invoices, [])
+    mock_merchant_4.expect(:invoices, [mock_failed_invoice, mock_pending_invoice] )
+
+    assert_equal [mock_merchant_1, mock_merchant_4], sa.merchants_with_pending_invoices
+    assert mock_merchant_1.verify
+    assert mock_merchant_2.verify
+    assert mock_merchant_3.verify
+    assert mock_merchant_4.verify
+    assert mock_successful_invoice.verify
+    assert mock_pending_invoice.verify
+    assert mock_failed_invoice.verify
+    assert mock_se.verify
+  end
+
+  def test_merchants_with_only_one_item
+    mock_se = Minitest::Mock.new
+    mock_merchant_1 = Minitest::Mock.new
+    mock_merchant_2 = Minitest::Mock.new
+    mock_merchant_3 = Minitest::Mock.new
+    sa = SalesAnalyst.new(mock_se)
+    mock_merchants = [mock_merchant_1, mock_merchant_2, mock_merchant_3]
+    mock_se.expect(:all_merchants, mock_merchants)
+    mock_merchant_1.expect(:items, ["an item", "another item"])
+    mock_merchant_2.expect(:items, ["just one item"])
+    mock_merchant_3.expect(:items, [])
+    assert_equal [mock_merchant_2], sa.merchants_with_only_one_item
+    assert mock_se.verify
+    assert mock_merchant_1.verify
+    assert mock_merchant_2.verify
+    assert mock_merchant_3.verify
   end
 
 end

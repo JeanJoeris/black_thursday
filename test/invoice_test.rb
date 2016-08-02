@@ -124,6 +124,7 @@ class InvoiceTest < Minitest::Test
     mock_invoice_item_2 = Minitest::Mock.new
     mock_item_1 = Minitest::Mock.new
     mock_item_2 = Minitest::Mock.new
+    mock_transaction = Minitest::Mock.new
     invoice = Invoice.new({
       :id => 7,
       :customer_id => 5,
@@ -133,6 +134,8 @@ class InvoiceTest < Minitest::Test
       :updated_at => Time.now
       }, mock_ir)
     mock_ir.expect(:find_invoice_items_by_invoice_id, [mock_invoice_item_1, mock_invoice_item_2], [7])
+    mock_ir.expect(:find_transactions_by_invoice_id, mock_transaction, [7])
+    mock_transaction.expect(:any?, "success")
     mock_invoice_item_1.expect(:unit_price, BigDecimal.new(10,4))
     mock_invoice_item_2.expect(:unit_price, BigDecimal.new(11.50,4))
     mock_invoice_item_1.expect(:quantity, 3)

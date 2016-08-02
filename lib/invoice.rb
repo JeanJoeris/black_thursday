@@ -59,9 +59,13 @@ class Invoice
   end
 
   def total
-    invoice_items.reduce(0) do |result, invoice_item|
-      result += (invoice_item.unit_price).floor(2)  * invoice_item.quantity
-      result
+    if is_paid_in_full?
+      invoice_items.reduce(0) do |result, invoice_item|
+        result += (invoice_item.unit_price).floor(2)  * invoice_item.quantity
+        result
+      end
+    else
+      0
     end
   end
 

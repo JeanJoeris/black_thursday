@@ -155,8 +155,25 @@ class SalesAnalyst
   def revenue_by_merchant(merchant_id)
     invoices = @sales_engine.find_invoices_by_merchant_id(merchant_id)
     invoices.reduce(0) do |result, invoice|
-      result += invoice.total if invoice.is_paid_in_full?
+      result += invoice.total
       result
+    end
+  end
+
+  def merchant_revenues
+    merchants = @sales_engine.all_merchants
+    revenues = merchants.map do |merchant|
+      revenue_by_merchant(merchant.id)
+    end
+  end
+
+  def top_revenue_earners(merchant_number = 20)
+    merchants_and_revenues = @sales_engine.all_merchants.zip(merchant_revenues)
+    sorted_merchants_and_revenues = merchants_and_revenues.sort_by do |merchant_and_revenue|
+      merchant_and_revenue.last
+    end.reverse
+    merchant_number.times.map do |num|
+      sorted_merchants_and_revenues[num].first
     end
   end
 end

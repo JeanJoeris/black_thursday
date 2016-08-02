@@ -130,10 +130,17 @@ class SalesAnalyst
     end
   end
 
-  def merchants_with_only_one_item
-    @sales_engine.all_merchants.find_all do |merchant|
+  def merchants_with_only_one_item(merchants = @sales_engine.all_merchants)
+    merchants.find_all do |merchant|
       merchant.items.count == 1
     end
+  end
+
+  def merchants_with_only_one_item_registered_in_month(month)
+    merchants_by_month = @sales_engine.all_merchants.find_all do |merchant|
+      merchant.created_at.strftime("%B") == month.capitalize
+    end
+    merchants_with_only_one_item(merchants_by_month)
   end
 
   def total_revenue_by_date(date)
@@ -203,5 +210,62 @@ class SalesAnalyst
 
   def merchants_ranked_by_revenue
     top_revenue_earners(@sales_engine.all_merchants.count)
+  end
+  
+  def best_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoices = merchant.invoices.find_all do |invoice|
+      invoice.is_paid_in_full?
+    end
+    top_invoice_items = paid_invoices.map do |paid_invoice|
+      paid_invoice.invoice_items.max_by do |invoice_item|
+        invoice_item.quantity * invoice_item.unit_price
+      end
+    end
+    quantity_grouped_items = top_invoice_items.group_by do |top_invoice_item|
+      top_invoice_item.quantity * top_invoice_item.unit_price
+    end 
+    max_quantity = quantity_grouped_items.keys.max
+    quantity_grouped_items[max_quantity].map do |invoice_item|
+      @sales_engine.find_item_by_item_id(invoice_item.id)
+    end
+    # [@sales_engine.find_item_by_item_id(top_invoice_item.item_id)]
+  end
+  
+  def find_item_quantity_across_invoice_items(item_id, invoice_items)
+    quantity = 0
+    invoice_items.each do |invoice_item|
+      quantity += invoice_item.quantity if invoice_item.item_id == item_id
+    end
+    quantity
+  end
+  
+  def most_sold_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoices = merchant.invoices.find_all do |invoice|
+      invoice.is_paid_in_full?
+    end
+    paid_invoice_items = paid_invoices.map do |invoice|
+      invoice.invoice_items
+    end.flatten
+    paid_invoice_items.map do |invoice_item|
+      find_item_quantity_across_invoice_items(invoice_item.item_id, paid_invoice_items)
+    end
+    # for each item, find its quantity across ALL paid invoices
+    top_invoice_items = paid_invoices.map do |paid_invoice|
+      paid_invoice.invoice_items.max_by do |invoice_item|
+        invoice_item.quantity
+      end
+    end
+    quantity_grouped_items = top_invoice_items.group_by do |top_invoice_item|
+      top_invoice_item.quantity 
+    end 
+    max_quantity = quantity_grouped_items.keys.max
+    # binding.pry
+    quantity_grouped_items[max_quantity].map do |invoice_item|
+      # binding.pry
+      @sales_engine.find_item_by_item_id(invoice_item.item_id)
+    end
+    # [@sales_engine.find_item_by_item_id(top_invoice_item.item_id)]
   end
 end

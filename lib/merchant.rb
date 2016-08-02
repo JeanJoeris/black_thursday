@@ -2,12 +2,22 @@ require_relative '../lib/item_repo'
 class Merchant
   attr_reader :id,
               :name,
+              :created_at,
+              :updated_at,
               :parent
 
   def initialize(merchant_details, merchant_repo = nil)
     @id   = merchant_details[:id].to_i
     @name = merchant_details[:name]
+    @created_at = format_time(merchant_details[:created_at].to_s)
+    @updated_at = format_time(merchant_details[:updated_at].to_s)
     @parent = merchant_repo
+  end
+
+  def format_time(time_string)
+    unless time_string == ""
+      Time.parse(time_string)
+    end
   end
 
   def items

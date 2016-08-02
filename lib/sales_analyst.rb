@@ -138,7 +138,7 @@ class SalesAnalyst
 
   def total_revenue_by_date(date)
     invoices_to_be_consider = @sales_engine.all_invoices.find_all do |invoice|
-      invoice.created_at.strftime("%F") == date.strftime("%F") && invoice.is_paid_in_full?
+      invoice.created_at.strftime("%F") == date.strftime("%F")
     end
     invoices_to_be_consider.reduce(0) do |result, invoice|
       result += invoice.total
@@ -176,4 +176,32 @@ class SalesAnalyst
     end
   end
 
+  def revenue_by_merchant(merchant_id)
+    invoices = @sales_engine.find_invoices_by_merchant_id(merchant_id)
+    invoices.reduce(0) do |result, invoice|
+      result += invoice.total
+      result
+    end
+  end
+
+  def merchant_revenues
+    merchants = @sales_engine.all_merchants
+    revenues = merchants.map do |merchant|
+      revenue_by_merchant(merchant.id)
+    end
+  end
+
+  def top_revenue_earners(merchant_number = 20)
+    merchants_and_revenues = @sales_engine.all_merchants.zip(merchant_revenues)
+    sorted_merchants_and_revenues = merchants_and_revenues.sort_by do |merchant_and_revenue|
+      merchant_and_revenue.last
+    end.reverse
+    merchant_number.times.map do |num|
+      sorted_merchants_and_revenues[num].first
+    end
+  end
+
+  def merchants_ranked_by_revenue
+    top_revenue_earners(@sales_engine.all_merchants.count)
+  end
 end

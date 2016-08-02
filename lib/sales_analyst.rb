@@ -151,29 +151,12 @@ class SalesAnalyst
       invoice.created_at.wday
     end
   end
-  
+
   def revenue_by_merchant(merchant_id)
     invoices = @sales_engine.find_invoices_by_merchant_id(merchant_id)
-    successful_invoices = invoices.map do |invoice|
-      invoice.is_paid_in_full?
-    end
-    successful_invoices.reduce(0) do |result, sucessful_invoice|
-      result += successful_invoice.total 
+    invoices.reduce(0) do |result, invoice|
+      result += invoice.total if invoice.is_paid_in_full?
       result
     end
   end
-      
-    
-    # transactions = invoices.map do |invoice|
-    #   @sales_engine.find_transactions_by_invoice_id(invoice.invoice_id) 
-    # end
-    invoice_items = transactions.map do |transaction|
-      @sales_engine.find_invoice_items_by_invoice_id(transaction.invoice_id) if transaction.result == "success"
-    end
-    invoice_items.reduce(0) do |result, invoice_item|
-      result += invoice_item.quantity * invoice_item.unit_price
-      result
-    end
-  end
-
 end

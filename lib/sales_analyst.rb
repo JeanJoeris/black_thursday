@@ -122,6 +122,30 @@ class SalesAnalyst
     top_days
   end
 
+  def merchants_with_pending_invoices
+    @sales_engine.all_merchants.find_all do |merchant|
+      merchant.invoices.any? do |invoice|
+        !invoice.is_paid_in_full?
+      end
+    end
+  end
+
+  def merchants_with_only_one_item
+    @sales_engine.all_merchants.find_all do |merchant|
+      merchant.items.count == 1
+    end
+  end
+
+  def total_revenue_by_date(date)
+    invoices_to_be_consider = @sales_engine.all_invoices.find_all do |invoice|
+      invoice.created_at.strftime("%F") == date.strftime("%F") && invoice.is_paid_in_full?
+    end
+    invoices_to_be_consider.reduce(0) do |result, invoice|
+      result += invoice.total
+      result
+    end
+  end
+
   def get_item_prices(items)
     items.map do |item|
       item.unit_price_to_dollars

@@ -29,8 +29,6 @@ class Transaction
   end
 
   def invoice
-    # binding.pry
     @parent.find_invoice_by_invoice_id(invoice_id)
   end
-
 end

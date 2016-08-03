@@ -1,6 +1,7 @@
 require_relative './transaction'
 
 class TransactionRepo
+
   def initialize(sales_engine = nil)
     @transactions = []
     @sales_engine = sales_engine
@@ -47,5 +48,4 @@ class TransactionRepo
   def find_invoice_by_invoice_id(invoice_id)
     @sales_engine.find_invoice_by_invoice_id(invoice_id)
   end
-
 end

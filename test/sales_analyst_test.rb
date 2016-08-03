@@ -60,7 +60,7 @@ class SalesAnalystTest < Minitest::Test
 
   def test_analyst_can_get_merchant_and_their_items
     expected_items = @mr.all.first.items
-    assert_equal expected_items, @sa.sales_engine.find_all_items_by_merchant_id(1)
+    assert_equal expected_items, @sa.sales_engine.find_items_by_merchant_id(1)
   end
 
   def test_average_price_for_merchant
@@ -301,7 +301,7 @@ class SalesAnalystTest < Minitest::Test
       :invoices => './test/support/invoice_for_analysis.csv'
     })
     sa = SalesAnalyst.new(se)
-    assert_equal ["Tuesday", "Thursday"], sa.top_days_by_invoice_count
+    assert_equal ["Monday", "Saturday"], sa.top_days_by_invoice_count
   end
 
   def test_revenue_by_merchant
@@ -312,9 +312,6 @@ class SalesAnalystTest < Minitest::Test
     sa = SalesAnalyst.new(mock_se)
     mock_invoices = [mock_invoice_1, mock_invoice_2, mock_invoice_3]
     mock_se.expect(:find_invoices_by_merchant_id, mock_invoices, [3])
-    # mock_invoice_1.expect(:is_paid_in_full?, true)
-    # mock_invoice_2.expect(:is_paid_in_full?, false)
-    # mock_invoice_3.expect(:is_paid_in_full?, true)
     mock_invoice_1.expect(:total, 12.5)
     mock_invoice_2.expect(:total, 0)
     mock_invoice_3.expect(:total, 13000)

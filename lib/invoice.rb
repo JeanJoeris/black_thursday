@@ -37,13 +37,6 @@ class Invoice
     @parent.find_invoice_items_by_invoice_id(id)
   end
 
-  def get_item_quantity(item_id)
-    invoice_items = get_invoice_items
-    invoice_items.find do |invoice_item|
-      invoice_item.item_id == item_id
-    end.quantity
-  end
-
   def transactions
     @parent.find_transactions_by_invoice_id(id)
   end
@@ -68,5 +61,4 @@ class Invoice
       0
     end
   end
-
 end

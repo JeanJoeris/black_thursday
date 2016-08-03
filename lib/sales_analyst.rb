@@ -4,22 +4,12 @@ class SalesAnalyst
   include AnalysisMath
   attr_reader :sales_engine
 
-  DAY_NUM_TO_WORD = {
-    0 => "Monday",
-    1 => "Tuesday",
-    2 => "Wednesday",
-    3 => "Thursday",
-    4 => "Friday",
-    5 => "Saturday",
-    6 => "Sunday"
-  }
-
   def initialize(sales_engine)
     @sales_engine = sales_engine
   end
 
   def average_item_price_for_merchant(id)
-    merchant_items = @sales_engine.find_all_items_by_merchant_id(id)
+    merchant_items = @sales_engine.find_items_by_merchant_id(id)
     prices = get_item_prices(merchant_items)
     mean(prices).round(2)
   end
@@ -34,7 +24,7 @@ class SalesAnalyst
   end
 
   def price_standard_deviation_for_merchant(id)
-    merchant_items = @sales_engine.find_all_items_by_merchant_id(id)
+    merchant_items = @sales_engine.find_items_by_merchant_id(id)
     prices = get_item_prices(merchant_items)
     standard_deviation(prices)
   end
@@ -113,13 +103,14 @@ class SalesAnalyst
   end
 
   def top_days_by_invoice_count
-    cutoff = average_invoices_per_day + average_invoices_per_day_std
     all_invoices = @sales_engine.all_invoices
-    top_days = get_day_invoice_counts(all_invoices).map.with_index do |day_count, day|
-      DAY_NUM_TO_WORD[day] if day_count > cutoff
+    day_grouped_invoices = all_invoices.group_by do |invoice|
+      invoice.created_at.strftime("%A")
     end
-    top_days.delete(nil)
-    top_days
+    cutoff = average_invoices_per_day + average_invoices_per_day_std
+    day_grouped_invoices.collect do |day, invoices_for_the_day|
+      day if invoices_for_the_day.count > cutoff
+    end.compact
   end
 
   def merchants_with_pending_invoices

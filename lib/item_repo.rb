@@ -1,7 +1,6 @@
 require_relative './item'
 
 class ItemRepo
-  attr_reader :sales_engine
 
   def initialize(sales_engine = nil)
     @items = []
@@ -36,7 +35,6 @@ class ItemRepo
 
   def find_all_by_price(price)
     @items.find_all do |item|
-      # binding.pry
       item.unit_price_to_dollars == (price)
     end
   end
@@ -53,11 +51,7 @@ class ItemRepo
     end
   end
 
-  # all methods below this are for children querying into
-  # other repos
-
   def find_merchant_by_merchant_id(id)
     @sales_engine.find_merchant_by_merchant_id(id)
   end
-
 end

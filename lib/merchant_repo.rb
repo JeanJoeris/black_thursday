@@ -1,7 +1,6 @@
 require_relative './merchant'
 
 class MerchantRepo
-  attr_reader :sales_engine
 
   def initialize(sales_engine = nil)
     @merchants = []
@@ -34,8 +33,8 @@ class MerchantRepo
     end
   end
 
-  def find_all_items_by_merchant_id(id)
-    @sales_engine.find_all_items_by_merchant_id(id)
+  def find_items_by_merchant_id(id)
+    @sales_engine.find_items_by_merchant_id(id)
   end
 
   def find_invoices_by_merchant_id(id)
@@ -45,5 +44,4 @@ class MerchantRepo
   def find_customer_by_customer_id(customer_id)
     @sales_engine.find_customer_by_customer_id(customer_id)
   end
-
 end

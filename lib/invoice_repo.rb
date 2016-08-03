@@ -1,7 +1,6 @@
 require_relative './invoice'
 
 class InvoiceRepo
-  attr_reader :sales_engine
 
   def initialize(sales_engine = nil)
     @invoices = []
@@ -44,20 +43,19 @@ class InvoiceRepo
     @sales_engine.find_merchant_by_merchant_id(id)
   end
 
-  def find_invoice_items_by_invoice_id(id)
-    @sales_engine.find_invoice_items_by_invoice_id(id)
-  end
-
   def find_item_by_item_id(id)
     @sales_engine.find_item_by_item_id(id)
   end
 
-  def find_transactions_by_invoice_id(id)
-    @sales_engine.find_transactions_by_invoice_id(id)
+  def find_invoice_items_by_invoice_id(id)
+    @sales_engine.find_invoice_items_by_invoice_id(id)
   end
 
   def find_customer_by_customer_id(id)
     @sales_engine.find_customer_by_customer_id(id)
   end
 
+  def find_transactions_by_invoice_id(id)
+    @sales_engine.find_transactions_by_invoice_id(id)
+  end
 end

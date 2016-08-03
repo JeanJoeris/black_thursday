@@ -1,6 +1,6 @@
 require 'forwardable'
-class FileLoader
 
+class FileLoader
   extend Forwardable
   def_delegators :@sales_engine,
                  :item_repo,
@@ -46,5 +46,15 @@ class FileLoader
     end
   end
 
-
+  # this is the saner way to get the repo name
+  # def repo_name
+  #   {
+  #     merchants: merchant_repo,
+  #     items: item_repo,
+  #     invoices: invoice_repo,
+  #     invoice_items: invoice_item_repo,
+  #     customers: customer_repo,
+  #     transactions: transaction_repo
+  #   }
+  # end
 end

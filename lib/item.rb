@@ -10,7 +10,6 @@ class Item
               :updated_at,
               :parent
 
-
   def initialize(item_details, repo = nil)
     @id          = item_details[:id].to_i
     @name        = item_details[:name]

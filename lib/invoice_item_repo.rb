@@ -1,6 +1,7 @@
 require_relative './invoice_item'
 
 class InvoiceItemRepo
+
   def initialize(sales_engine = nil)
     @invoice_items = []
     @sales_engine = sales_engine
@@ -31,5 +32,4 @@ class InvoiceItemRepo
       invoice_item.invoice_id == invoice_id
     end
   end
-
 end

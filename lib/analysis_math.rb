@@ -1,4 +1,5 @@
 require 'bigdecimal'
+
 module AnalysisMath
 
   def sum(numbers)
@@ -22,5 +23,4 @@ module AnalysisMath
   def standard_deviation(numbers)
     Math.sqrt(variance(numbers)).round(2)
   end
-
 end

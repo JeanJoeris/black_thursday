@@ -28,6 +28,12 @@ class Merchant
     @parent.find_invoices_by_merchant_id(self.id)
   end
 
+  def paid_invoices
+    invoices.find_all do |invoice|
+      invoice.is_paid_in_full?
+    end
+  end
+
   def customers
     invoices = @parent.find_invoices_by_merchant_id(id)
     invoices.map do |invoice|

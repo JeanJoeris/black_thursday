@@ -374,4 +374,109 @@ class SalesAnalystTest < Minitest::Test
     assert mock_merchant_3.verify
   end
 
+  def test_find_merchants_with_returned_status
+    mock_se = Minitest::Mock.new
+    sa = SalesAnalyst.new(mock_se)
+    mock_merchant_1 = Minitest::Mock.new
+    mock_merchant_2 = Minitest::Mock.new
+    mock_merchants  = [mock_merchant_1, mock_merchant_2]
+    mock_invoice_1  = Minitest::Mock.new
+    mock_invoice_2  = Minitest::Mock.new
+    mock_invoice_3  = Minitest::Mock.new
+    mock_invoice_4  = Minitest::Mock.new
+    mock_invoice_5  = Minitest::Mock.new
+    mock_se.expect(:all_merchants, mock_merchants)
+    mock_merchant_1.expect(:invoices, [mock_invoice_1, mock_invoice_2])
+    mock_merchant_2.expect(:invoices, [mock_invoice_3, mock_invoice_4, mock_invoice_5])
+    mock_invoice_1.expect(:status, :success)
+    mock_invoice_2.expect(:status, :aardvark)
+    mock_invoice_3.expect(:status, :pending)
+    mock_invoice_4.expect(:status, :success)
+    mock_invoice_5.expect(:status, :returned)
+    assert_equal [mock_merchant_2], sa.merchants_with_returned_invoices
+    assert mock_se.verify
+    assert mock_invoice_1.verify
+    assert mock_invoice_2.verify
+    assert mock_invoice_3.verify
+    assert mock_invoice_4.verify
+    assert mock_invoice_5.verify
+    assert mock_merchant_1.verify
+    assert mock_merchant_2.verify
+  end
+
+  def test_profit_returns_revenue_minus_returned_invoice_revenue
+    mock_se = Minitest::Mock.new
+    sa = SalesAnalyst.new(mock_se)
+    mock_invoice_1 = Minitest::Mock.new
+    mock_invoice_2 = Minitest::Mock.new
+    mock_invoice_3 = Minitest::Mock.new
+    mock_invoice_4 = Minitest::Mock.new
+    mock_invoices = [mock_invoice_1, mock_invoice_2, mock_invoice_3, mock_invoice_4]
+    mock_se.expect(:find_invoices_by_merchant_id, mock_invoices, [12])
+    mock_invoice_1.expect(:status, :success)
+    mock_invoice_2.expect(:status, :pending)
+    mock_invoice_3.expect(:status, :aardvark)
+    mock_invoice_4.expect(:status, :returned)
+    mock_invoice_1.expect(:is_paid_in_full?, true)
+    mock_invoice_2.expect(:is_paid_in_full?, true)
+    mock_invoice_3.expect(:is_paid_in_full?, false)
+    mock_invoice_1.expect(:total, 120)
+    mock_invoice_2.expect(:total, 15)
+    assert_equal 135, sa.profit_by_merchant(12)
+    assert mock_se.verify
+    assert mock_invoice_1.verify
+    assert mock_invoice_2.verify
+    assert mock_invoice_3.verify
+    assert mock_invoice_4.verify
+  end
+
+  # def test_find_lost_revenue_percent
+  #   mock_se = Minitest::Mock.new
+  #   sa = SalesAnalyst.new(mock_se)
+  #   mock_merchant_1 = Minitest::Mock.new
+  #   mock_merchant_2 = Minitest::Mock.new
+  #   mock_merchant_3 = Minitest::Mock.new
+  #   mock_merchants = [mock_merchant_1, mock_merchant_2, mock_merchant_3]
+  #   mock_invoice_1 = Minitest::Mock.new
+  #   mock_invoice_2 = Minitest::Mock.new
+  #   mock_invoice_3 = Minitest::Mock.new
+  #   mock_invoice_4 = Minitest::Mock.new
+  #   mock_invoice_5 = Minitest::Mock.new
+  #   mock_invoice_6 = Minitest::Mock.new
+  #   mock_se.expect(:all_merchants, mock_merchants)
+  #   mock_merchant_1.expect(:invoices, [mock_invoice_1, mock_invoice_2, mock_invoice_3])
+  #   mock_merchant_2.expect(:invoices, [mock_invoice_4, mock_invoice_5])
+  #   mock_merchant_3.expect(:invoices, [mock_invoice_6])
+  #
+  #   2.times do
+  #     mock_invoice_1.expect(:status, :success)
+  #     mock_invoice_2.expect(:status, :failed)
+  #     mock_invoice_3.expect(:status, :returned)
+  #     mock_invoice_4.expect(:status, :success)
+  #     mock_invoice_5.expect(:status, :returned)
+  #     mock_merchant_1.expect(:id, 1)
+  #     mock_merchant_2.expect(:id, 2)
+  #     mock_invoice_1.expect(:total, 1)
+  #     mock_invoice_2.expect(:total, 2)
+  #     mock_invoice_3.expect(:total, 3)
+  #     mock_invoice_4.expect(:total, 25)
+  #     mock_invoice_5.expect(:total, 5)
+  #    mock_se.expect(:find_invoices_by_merchant_id, [mock_invoice_1, mock_invoice_2, mock_invoice_3], [1])
+  #    mock_se.expect(:find_invoices_by_merchant_id, [mock_invoice_4, mock_invoice_5], [2])
+  #    end
+  #
+  #   mock_invoice_6.expect(:status, :success)
+  #
+  #   assert_equal [100, 16.67], sa.lost_revenue_percentages
+  #   assert mock_se.verify
+  #   assert mock_merchant_1.verify
+  #   assert mock_merchant_2.verify
+  #   assert mock_merchant_3.verify
+  #   assert mock_invoice_1.verify
+  #   assert mock_invoice_2.verify
+  #   assert mock_invoice_3.verify
+  #   assert mock_invoice_4.verify
+  #   assert mock_invoice_5.verify
+  #   assert mock_invoice_6.verify
+  # end
 end

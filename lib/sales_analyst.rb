@@ -8,8 +8,8 @@ class SalesAnalyst
     @sales_engine = sales_engine
   end
 
-  def average_item_price_for_merchant(id)
-    merchant_items = @sales_engine.find_items_by_merchant_id(id)
+  def average_item_price_for_merchant(merchant_id)
+    merchant_items = @sales_engine.find_items_by_merchant_id(merchant_id)
     prices = get_item_prices(merchant_items)
     mean(prices).round(2)
   end
@@ -23,8 +23,8 @@ class SalesAnalyst
     average_price = (total_average_price / all_merchants.count).floor(2)
   end
 
-  def price_standard_deviation_for_merchant(id)
-    merchant_items = @sales_engine.find_items_by_merchant_id(id)
+  def price_standard_deviation_for_merchant(merchant_id)
+    merchant_items = @sales_engine.find_items_by_merchant_id(merchant_id)
     prices = get_item_prices(merchant_items)
     standard_deviation(prices)
   end
@@ -184,7 +184,7 @@ class SalesAnalyst
 
   def merchant_revenues
     merchants = @sales_engine.all_merchants
-    revenues = merchants.map do |merchant|
+    merchants.map do |merchant|
       revenue_by_merchant(merchant.id)
     end
   end
@@ -201,6 +201,30 @@ class SalesAnalyst
 
   def merchants_ranked_by_revenue
     top_revenue_earners(@sales_engine.all_merchants.count)
+  end
+
+  def most_sold_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
+      invoice.invoice_items
+    end.flatten
+
+    quantity_grouped_invoice_items =
+     get_quantity_grouped_invoice_items(paid_invoice_items)
+
+    get_most_sold_items(quantity_grouped_invoice_items)
+  end
+
+  def best_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
+      invoice.invoice_items
+    end.flatten
+
+    revenue_grouped_invoice_items =
+      get_revenue_grouped_invoice_items(paid_invoice_items)
+
+    get_best_items(revenue_grouped_invoice_items).first
   end
 
   def find_item_quantity(item_id, invoice_items)
@@ -239,27 +263,32 @@ class SalesAnalyst
     end
   end
 
-  def most_sold_item_for_merchant(merchant_id)
-    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
-    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
-      invoice.invoice_items
-    end.flatten
-
-    quantity_grouped_invoice_items =
-     get_quantity_grouped_invoice_items(paid_invoice_items)
-
-    get_most_sold_items(quantity_grouped_invoice_items)
+  def merchants_with_returned_invoices
+    @sales_engine.all_merchants.find_all do |merchant|
+      merchant.invoices.any? do |invoice|
+        invoice.status == :returned
+      end
+    end
   end
 
-  def best_item_for_merchant(merchant_id)
-    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
-    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
-      invoice.invoice_items
-    end.flatten
+  def profit_by_merchant(merchant_id)
+    invoices = @sales_engine.find_invoices_by_merchant_id(merchant_id)
+    invoices.reduce(0) do |result, invoice|
+      if invoice.status != :returned && invoice.is_paid_in_full?
+        result += invoice.total
+      end
+      result
+    end
+  end
 
-    revenue_grouped_invoice_items =
-      get_revenue_grouped_invoice_items(paid_invoice_items)
-
-    get_best_items(revenue_grouped_invoice_items).first
+  def lost_revenue_percentages
+    @sales_engine.all_merchants.reduce({}) do |result, merchant|
+      profit = profit_by_merchant(merchant.id)
+      revenue = revenue_by_merchant(merchant.id)
+      ratio = 1 - profit / revenue unless revenue == 0
+      ratio = 0 if revenue == 0
+      result[merchant.id] = (100 * ratio).to_f.round(2)
+      result
+    end
   end
 end

@@ -45,18 +45,6 @@ class SalesEngineTest < Minitest::Test
     assert_equal 10, se.item_repo.all.count
   end
 
-  def test_item_repo_can_access_sales_engine
-    se = SalesEngine.new("empty")
-    item_repo = se.item_repo
-    assert_equal se, item_repo.sales_engine
-  end
-
-  def test_merchant_repo_can_access_sales_engine
-    se = SalesEngine.new("empty")
-    merchant_repo = se.merchant_repo
-    assert_equal se, merchant_repo.sales_engine
-  end
-
   def test_merchant_can_find_items
     se = SalesEngine.new("empty")
     ir = se.item_repo

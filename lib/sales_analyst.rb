@@ -130,10 +130,17 @@ class SalesAnalyst
     end
   end
 
-  def merchants_with_only_one_item
-    @sales_engine.all_merchants.find_all do |merchant|
+  def merchants_with_only_one_item(merchants = @sales_engine.all_merchants)
+    merchants.find_all do |merchant|
       merchant.items.count == 1
     end
+  end
+
+  def merchants_with_only_one_item_registered_in_month(month)
+    merchants_by_month = @sales_engine.all_merchants.find_all do |merchant|
+      merchant.created_at.strftime("%B") == month.capitalize
+    end
+    merchants_with_only_one_item(merchants_by_month)
   end
 
   def total_revenue_by_date(date)
@@ -192,16 +199,76 @@ class SalesAnalyst
   end
 
   def top_revenue_earners(merchant_number = 20)
-    merchants_and_revenues = @sales_engine.all_merchants.zip(merchant_revenues)
-    sorted_merchants_and_revenues = merchants_and_revenues.sort_by do |merchant_and_revenue|
-      merchant_and_revenue.last
+    revenue_data = @sales_engine.all_merchants.zip(merchant_revenues)
+    sorted_revenue_data = revenue_data.sort_by do |revenue_data|
+      revenue_data.last
     end.reverse
     merchant_number.times.map do |num|
-      sorted_merchants_and_revenues[num].first
+      sorted_revenue_data[num].first
     end
   end
 
   def merchants_ranked_by_revenue
     top_revenue_earners(@sales_engine.all_merchants.count)
+  end
+
+  def find_item_quantity(item_id, invoice_items)
+    invoice_items.reduce(0) do |result, invoice_item|
+      if invoice_item.item_id == item_id
+        result += invoice_item.quantity
+      end
+      result
+    end
+  end
+
+  def get_quantity_grouped_invoice_items(invoice_items)
+    invoice_items.group_by do |invoice_item|
+      find_item_quantity(invoice_item.item_id, invoice_items)
+    end
+  end
+
+  def get_revenue_grouped_invoice_items(invoice_items)
+    invoice_items.group_by do |invoice_item|
+      price = invoice_item.unit_price
+      find_item_quantity(invoice_item.item_id, invoice_items) * price
+    end
+  end
+
+  def get_most_sold_items(quantity_grouped_invoice_items)
+    max_quantity = quantity_grouped_invoice_items.keys.max
+    quantity_grouped_invoice_items[max_quantity].map do |invoice_item|
+      @sales_engine.find_item_by_item_id(invoice_item.item_id)
+    end
+  end
+
+  def get_best_items(revenue_grouped_invoice_items)
+    max_revenue = revenue_grouped_invoice_items.keys.max
+    revenue_grouped_invoice_items[max_revenue].map do |invoice_item|
+      @sales_engine.find_item_by_item_id(invoice_item.item_id)
+    end
+  end
+
+  def most_sold_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
+      invoice.invoice_items
+    end.flatten
+
+    quantity_grouped_invoice_items =
+     get_quantity_grouped_invoice_items(paid_invoice_items)
+
+    get_most_sold_items(quantity_grouped_invoice_items)
+  end
+
+  def best_item_for_merchant(merchant_id)
+    merchant = @sales_engine.find_merchant_by_merchant_id(merchant_id)
+    paid_invoice_items = merchant.paid_invoices.collect do |invoice|
+      invoice.invoice_items
+    end.flatten
+
+    revenue_grouped_invoice_items =
+      get_revenue_grouped_invoice_items(paid_invoice_items)
+
+    get_best_items(revenue_grouped_invoice_items).first
   end
 end

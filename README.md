@@ -15,10 +15,10 @@ With this base engine, data analysis was performed with an eye towards business 
 Currently the program is not used much other than against tests. The easiest way to use it would be to open it in IRB/pry
 
 1. Open your favorite Ruby REPL
-2. Require './lib/sales_engine'
+2. `require './lib/sales_engine'`
 3. Create a new sales engine instance
 4. Load CSVs into sales engine using #from_csv
-5. (if analytics are desired) Require './lib/sales_analyst'
+5. (if analytics are desired) `require './lib/sales_analyst'`
 6. Create a new instance of sales analyst, initialized with the sales engine
 
 ## Contributing

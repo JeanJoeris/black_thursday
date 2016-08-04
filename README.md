@@ -1,7 +1,7 @@
 # Black Thursday
 
 The goal of the project was to build a sales engine to that could read in and store data for a hypothetical online store.
-With this base engine, data analysis was performed with an eye towards business logic.
+With this base engine, data analysis was performed with an eye towards business logic. The original spec is [here](https://github.com/turingschool/curriculum/blob/master/source/projects/black_thursday.markdown)
 
 ## Installation
 
